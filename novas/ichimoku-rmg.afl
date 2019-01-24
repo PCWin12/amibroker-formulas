@@ -1,0 +1,98 @@
+_SECTION_BEGIN("Preço");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN( "Parametros" );
+p_tenkan_sen = Param( "Tenkan Sen", 9, 5, 40, 1 );//also known as Tenkan Sen - Azul claro
+p_kijun_sen = Param( "Kijun Sen", 26, 5, 20, 1 );//also known as Kijun Sen - Azul escuro
+//p_senkou_span_a = Param( "Senkou Span A", 26, 0, 40, 1 );//also known as Chikou Span - Verde
+p_senkou_span_b = Param( "Senkou Span B", 52, 0, 40, 1 );//also known as Chikou Span - Vermelho
+_SECTION_END();
+
+tenkan_sen = (HHV(H, p_tenkan_sen) + LLV(L, p_tenkan_sen)) / 2; 
+kijun_sen = (HHV(H, p_kijun_sen) + LLV(L, p_kijun_sen)) / 2;
+senkou_span_a = (tenkan_sen + kijun_sen) / 2;
+senkou_span_b = (HHV(H, p_senkou_span_b) + LLV(L, p_senkou_span_b)) / 2; 
+
+Plot(tenkan_sen, "tenkan-sen", colorLightBlue);
+Plot(kijun_sen, "kijun-sen", colorDarkBlue);
+Plot(C, "chikou span", colorOrange, styleLine|styleThick,Null,Null,-26);
+PlotOHLC ( senkou_span_a, senkou_span_b, senkou_span_a, senkou_span_b, "Nuvem", IIf(senkou_span_a>senkou_span_b,colorLime,colorLightOrange), styleCloud | styleNoLabel, Null, Null, 26, -2 );
+
+
+_SECTION_BEGIN("TS_KS Crossover");
+Buy = Cross( tenkan_sen, kijun_sen);
+Sell = Cross( kijun_sen, tenkan_sen);
+PlotShapes(IIf(Sell==1, shapeDownArrow, shapeNone), colorYellow, 0,High, Offset=-15);
+PlotShapes(IIf(Buy==1, shapeUpArrow , shapeNone), colorBlueGrey, 0,Low, Offset=-15);
+_SECTION_END();
+
+
+/*
+https://www.wisestocktrader.com/indicators/5879-ichimoku-for-amibroker-afl
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+ 
+_SECTION_BEGIN("Ichimoku");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+{
+ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+}
+ 
+Daogam1 = ( HHV( H, 65 ) + LLV( L, 65) )/2;
+Daogam2 = ( HHV( H, 129 ) + LLV( L, 129) )/2;
+KS = ( HHV( H, 17 ) + LLV( L, 17) )/2;
+TS = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;
+//CS = Ref( C, 26 );
+CS=C;
+Span1 = (( KS + TS )/2);
+Span2 = (HHV( H, 26) + LLV(L, 26))/2;
+ 
+Plot(Daogam2,"Daogam2",colorWhite,styleThick);
+Plot(Daogam1,"Daogam1",colorOrange,styleThick);
+Plot(KS,"KS",colorBlue,styleThick);
+Plot(TS,"TS",colorRed,styleThick);
+Plot(CS,"",colorBrightGreen,styleLine|styleThick,Null,Null,-26);
+Plot(Span1,"",colorBrown,1,0,0,26);
+Plot(Span2,"",colorLightOrange,1,0,0,26);
+PlotOHLC(Span1,Span2,Span1,Span2,"",IIf(Span1>Span2,colorLime,colorLightOrange),styleCloud|4096,0,0,26);
+_SECTION_END();
+ 
+_SECTION_BEGIN("TS_KS Crossover");
+Buy = Cross( TS,KS );
+Sell = Cross( KS,TS );
+PlotShapes(IIf(Sell==1, shapeDownArrow, shapeNone), colorRed, 0,High, Offset=-15);
+PlotShapes(IIf(Buy==1, shapeUpArrow , shapeNone), colorBlue, 0,Low, Offset=-15);
+_SECTION_END();
+*/
+
+
+/*
+prds = Param( "Standard Line Periods", 13, 5, 26, 1 );
+turn = Param( "Turning Line Periods", 3, 3, 10, 1 );
+delay = Param( "Delayed Line Periods", 12, 4, 25, 1 );
+span = Param( "Spans Periods", 16, 10, 52, 1 );
+
+TL = ( HHV( H, turn ) + LLV( L, turn ) ) / 2;
+SL = ( HHV( H, prds ) + LLV( L, prds ) ) / 2;
+DL = Ref( C, delay );
+Sp1 = ( SL + TL ) / 2;
+Sp2 = ( HHV( H, span ) + LLV( L, span ) ) / 2;
+
+_N( Title = StrFormat( "{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+
+Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() );
+Plot( SL, "SL", colorRed, styleThick | styleNoLabel );
+Plot( TL, "TL", colorGreen, styleThick | styleNoLabel );
+color = IIf( Sp1 > Sp2, ParamColor( "Span1 Color", ColorRGB( 0, 255, 0 ) ), ParamColor( "Span2 Color", ColorRGB( 255, 104, 32 ) ) );
+PlotOHLC ( Sp1, Sp1, Sp2, Sp2, "Cloud", Color, styleCloud | styleNoLabel, Null, Null, delay, -2 );
+*/
