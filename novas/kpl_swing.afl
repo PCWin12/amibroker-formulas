@@ -1,0 +1,29 @@
+_SECTION_BEGIN("KPL Swing");
+//Save indicator as "kplswing.afl" in C: program files > Amibroker > Formulas > Custom folder and then drag and drop indicator on price window.
+//Copyright Kamalesh Langote. Email:kpl@vfmdirect.com. Visit http://www.vfmdirect.com/kplswing for latest code and updates
+//You can use in indicator mode (chart) or scanner (generate buy/ sell signals).
+//Risk management: do not risk more than 1% of your capital on any trade.
+//Avoid trading in futures unless you are well capitalised.
+
+//http://www.vfmdirect.com/kplswing/
+
+no=Param( "Swing", 20, 1, 100,1 );
+
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+tsl=IIf(avn==1,sup,res);
+
+Plot(tsl, _DEFAULT_NAME(), colorblack, styleStaircase);
+Plot(IIf(C>tsl,HHV(LLV(L,no/2),no/2),LLV(HHV(H,no/2),no/2)),"SL",colorLightGrey,styleStaircase);
+arrows=Cross(C,Ref(res,-1))*shapeUpArrow + Cross(Ref(sup,-1),C)*shapeDownArrow;
+PlotShapes(arrows,IIf(C>tsl,colorGreen,colorIndigo),0,IIf(Cross(C,Ref(res,-1)),Low,High));
+
+//Scanner mode
+Buy=Cross(C,Ref(res,-1));
+Sell=Cross(Ref(sup,-1),C);
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+
+_SECTION_END();
